@@ -4,6 +4,12 @@ Here is my interpretation of the London Crime analysis dataset focusing on crime
 
 This dataset records the count of crimes monthly that was taken place in all 33 London Boroughs. I will be analysing this at Borough and Ward Level.
 
+- Borough Level:
+A large administrative division within a city or town such as Camden or Hackney in London
+  
+
+- Ward Level:
+A smaller administrative unit within a borough or district, often representing a specific community or neighborhood i.e Camden is divided into wards like Bloomsbury, Camden Town, and Kentish Town
 
 ## What is the purpose of Analysing Crime in London?
 
@@ -16,7 +22,7 @@ This London crime borough dashboard is a catalyst for informed decision-making a
 
 ## Script
 
-The analysis presented was conducted using RStudio covering data preparation tasks such as cleansing, filtering, and statistical analysis. This process enabled the identification of trends and patterns within boroughs and crime types which is important as It allows us to extrapolate future trends from historical data, thus enhancing predictive analysis
+The analysis presented was conducted using RStudio covering data preparation tasks such as cleansing, filtering, and statistical analysis. This process enabled the identification of trends and patterns within boroughs and crime types which is important as It allows us to extrapolate future trends from historical data, thus enhancing predictive analysis.
 
 ## Additional Notes
 
