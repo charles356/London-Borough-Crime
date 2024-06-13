@@ -1,0 +1,111 @@
+#Library's
+library(readxl)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(zoo)
+library(lubridate)
+library(plotly)
+library(broom)
+library(readr)
+library(sf)
+library(prophet)
+
+ # ******************************************************************************************************************************************************
+
+# Import Main MPS Dataset
+
+New_MPS <- read_csv("Borough crime data.txt")
+
+# Format Month So that it is a pivot_longer and rename field names for analysis 
+
+New_MPS<-New_MPS%>% 
+  pivot_longer(-c("MajorText", "MinorText","BoroughName"),names_to = "Month",
+               values_to = "count") %>%
+  mutate(count =ifelse(is.na(count),0, count)) %>%
+  mutate(Month = str_replace(Month, "X", "")) %>%
+  mutate(Month = as.Date(paste0(as.character(Month),"01"),format="%Y%m%d")) %>%
+  mutate(Year = year(Month))
+
+# Order by Month so we start with 2019
+New_MPS <- New_MPS[order(New_MPS$Month), ]
+
+# Import population data for calculating crime rate preparation
+Population_Data <- read_csv("Population Data.csv")
+
+
+# Join population table with MPS data set 
+New_MPSS <- New_MPS %>% 
+  left_join(Population_Data,by =c("BoroughName"="Borough"))
+
+
+# create new field displaying the crime rate for each major/minor text for each borough per 1,000 people
+New_MPSS$crime_rate <- (New_MPSS$count / New_MPSS$Population * 1000)
+
+
+#filter the NA's in the dataset
+New_MPSS <- New_MPSS %>% filter(
+    BoroughName != "London Heathrow and London City Airports",
+    BoroughName != "Unknown"
+  )
+
+# Export table as csv and import into visulisation tool 
+write.table(New_MPSS, file="MPS_Time_Series.csv", row.names=F, sep=",")
+
+# import borough Map Polygon Data (used to create London borough map in Tableau)
+LMap <- read_csv("Sheet 1_data.csv")
+
+# Join Main_MPSS dataset with new dataset 
+New_MPSS <- New_MPSS %>% 
+  left_join(LMap, by =c("BoroughName" = "Name"))
+
+# Export table as csv and import into visulisation tool (for mapping)
+write.table(New_MPSS, file="MPS_Borough1.csv", row.names=F, sep=",")
+
+
+ 
+ # ******************************************************************************************************************************************************
+
+ # Download data at Ward Levell
+ 
+#import csv and call it ward_New_MPSS_table
+Ward_New_MPSS_table <- read_csv("Ward crime data.csv")
+
+#Remove column we don't need
+Ward_New_MPSS_table <- Ward_New_MPSS_table %>% select(-`WardCode`)
+ 
+# Format Month So that it is a pivot_longer and rename field names for analysis 
+ Ward_New_MPSS_table <- Ward_New_MPSS_table %>%
+   pivot_longer(
+     cols = -c(MajorText, MinorText, WardName, LookUp_BoroughName),
+     names_to = "Month",
+     values_to = "count",
+     
+   )
+ 
+ Ward_New_MPSS_table <- Ward_New_MPSS_table %>%
+   mutate(
+     count = ifelse(is.na(count), 0, count),
+     Month = str_replace(Month, "X", ""),
+     Month = as.Date(paste0(Month, "01"), format="%Y%m%d"),
+     Year = year(Month)
+   )
+ 
+ #filter the NA's in the dataset
+ Ward_New_MPSS_table <- Ward_New_MPSS_table %>% filter(
+   WardName != "Heathrow Villages")
+ 
+ 
+ # Rename coloumn name so its the same as other datasets
+ Ward_New_MPSS_table <- Ward_New_MPSS_table %>%
+   rename(BoroughName = LookUp_BoroughName)
+ 
+#Join dataset with population_Data to get population of each Borough
+ Ward_New_MPSS_table <- Ward_New_MPSS_table %>% 
+   left_join(Population_Data,by =c("BoroughName"="Borough"))
+ 
+ # create new field displaying the crime rate for each major/minor text for each borough per 1,000 people
+ Ward_New_MPSS_table$crime_rate <- (Ward_New_MPSS_table$count / Ward_New_MPSS_table$Population * 1000)
+ 
+ # Export table as csv and import into visulisation tool (for mapping)
+ write.table(Ward_New_MPSS_table, file="MPS_Ward4.csv", row.names=F, sep=",")
